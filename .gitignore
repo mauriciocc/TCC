@@ -96,3 +96,8 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 
+.idea/
+.mvn/
+mvnw
+mvnw.cmd
+*.iml
