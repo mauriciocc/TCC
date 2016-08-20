@@ -24,7 +24,7 @@ public class TodoResource {
     }
 
     private <T> DeferredResult<T> process(Function<DeferredResult<T>, Object> fn) {
-        DeferredResult<T> result = new DeferredResult<>(5000L);
+        DeferredResult<T> result = new DeferredResult<>();
         actor.tell(fn.apply(result), null);
         return result;
     }

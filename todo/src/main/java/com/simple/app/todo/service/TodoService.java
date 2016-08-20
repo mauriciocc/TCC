@@ -43,7 +43,7 @@ public class TodoService {
 
     @Transactional(readOnly = true)
     public List<Todo> findAll() {
-        return jdbc.query("SELECT * FROM todo", ROW_MAPPER);
+        return jdbc.query("SELECT * FROM todo LIMIT 10", ROW_MAPPER);
     }
 
 

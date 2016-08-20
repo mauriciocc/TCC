@@ -44,7 +44,7 @@ class TodoService {
     }
 
     public Observable<Todo> findAll() {
-        return db.queryRows("SELECT * FROM todo").map(ROW_MAPPER::apply);
+        return db.queryRows("SELECT * FROM todo LIMIT 10").map(ROW_MAPPER::apply);
     }
 
 
