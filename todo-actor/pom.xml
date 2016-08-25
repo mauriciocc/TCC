@@ -25,6 +25,7 @@
 		<akka.version>2.4.9</akka.version>
 		<jackson-databind.version>2.8.1</jackson-databind.version>
 		<postgres-async-driver.version>0.9</postgres-async-driver.version>
+		<capsule.maven.plugin.version>1.2.0</capsule.maven.plugin.version>
 	</properties>
 
 	<dependencies>
@@ -68,5 +69,26 @@
 		</dependency>
 
 	</dependencies>
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.github.chrischristo</groupId>
+				<artifactId>capsule-maven-plugin</artifactId>
+				<version>${capsule.maven.plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build</goal>
+						</goals>
+						<configuration>
+							<appClass>com.simple.app.todo.async.TodoAsyncApp</appClass>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
