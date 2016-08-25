@@ -21,7 +21,6 @@ import akka.stream.javadsl.Flow;
 import akka.util.Timeout;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.pgasync.ConnectionPoolBuilder;
 import com.github.pgasync.Db;
@@ -30,14 +29,21 @@ import com.simple.app.todo.async.service.TodoActor;
 import com.simple.app.todo.async.service.TodoService;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
 import static akka.pattern.Patterns.ask;
 
 public class TodoAsyncApp extends AllDirectives {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TodoAsyncApp.class);
 
     public static final Timeout TIMEOUT = Timeout.apply(5, TimeUnit.MINUTES);
 
@@ -47,8 +53,7 @@ public class TodoAsyncApp extends AllDirectives {
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-    public static Db db() {
-        Config conf = ConfigFactory.load();
+    public static Db db(Config conf) {
         return new ConnectionPoolBuilder()
                 .hostname(conf.getString("db.host"))
                 .port(conf.getInt("db.port"))
@@ -68,7 +73,15 @@ public class TodoAsyncApp extends AllDirectives {
     }
 
     public static void main(String[] args) throws IOException {
-        // boot up server using the route as defined below
+        Config conf = ConfigFactory.load();
+
+        Path path = Paths.get(args.length > 0 ? args[0] : "application.properties");
+        boolean fileExists = Files.exists(path);
+        LOG.debug("Trying to load config from '{}' - Exists: {}", path.toAbsolutePath(), fileExists);
+                if (fileExists) {
+            conf = ConfigFactory.parseFile(path.toFile()).withFallback(conf);
+        }
+
         ActorSystem system = ActorSystem.create();
 
         // HttpApp.bindRoute expects a route being provided by HttpApp.createRoute
@@ -77,8 +90,16 @@ public class TodoAsyncApp extends AllDirectives {
         final Http http = Http.get(system);
         final ActorMaterializer materializer = ActorMaterializer.create(system);
 
-        final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute(system).flow(system, materializer);
-        final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow, ConnectHttp.toHost("localhost", 8080), materializer);
+        final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute(conf, system).flow(system, materializer);
+        ConnectHttp localhost = ConnectHttp.toHost(conf.getString("app.host"), conf.getInt("app.port"));
+        final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow, localhost, materializer)
+                .whenComplete((serverBinding, throwable) -> {
+                    if (throwable == null) {
+                        System.out.println("Server binding ok - " + serverBinding);
+                    } else {
+                        throwable.printStackTrace();
+                    }
+                });
 
         System.out.println("Type RETURN to exit");
         System.in.read();
@@ -89,8 +110,9 @@ public class TodoAsyncApp extends AllDirectives {
     }
 
 
-    public Route createRoute(ActorSystem system) {
-        Db db = db();
+    public Route createRoute(Config conf, ActorSystem system) {
+        Db db = db(conf);
+        db.queryRows("SELECT 1").toBlocking().first();
         TodoService todoService = new TodoService(db);
         ActorRef todoActor = todoActor(system, todoService);
         ObjectMapper om = om();
