@@ -22,63 +22,51 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
+		<akka.version>2.4.9</akka.version>
+		<jackson-databind.version>2.8.1</jackson-databind.version>
+		<postgres-async-driver.version>0.9</postgres-async-driver.version>
 	</properties>
 
 	<dependencies>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-tomcat</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-actor_2.11</artifactId>
+			<version>${akka.version}</version>
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-undertow</artifactId>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-http-experimental_2.11</artifactId>
+			<version>${akka.version}</version>
 		</dependency>
 
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-http-jackson-experimental_2.11</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson-databind.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>${jackson-databind.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.typesafe.akka</groupId>
-			<artifactId>akka-actor_2.11</artifactId>
-			<version>2.4.8</version>
-		</dependency>
 
 		<dependency>
 			<groupId>com.github.alaisi.pgasync</groupId>
 			<artifactId>postgres-async-driver</artifactId>
-			<version>0.9</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
+			<version>${postgres-async-driver.version}</version>
 		</dependency>
 
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
 
 </project>

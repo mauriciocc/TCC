@@ -1,3 +1,4 @@
+/*
 package com.simple.app.todo.async.web;
 
 import akka.actor.ActorRef;
@@ -55,3 +56,4 @@ public class TodoResource {
     }
 
 }
+*/

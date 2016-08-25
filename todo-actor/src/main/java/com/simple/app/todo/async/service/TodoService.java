@@ -3,8 +3,6 @@ package com.simple.app.todo.async.service;
 import com.github.pgasync.Db;
 import com.github.pgasync.Row;
 import com.simple.app.todo.async.domain.Todo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import rx.Observable;
 
 import java.sql.Timestamp;
@@ -14,8 +12,7 @@ import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 
-@Service
-class TodoService {
+public class TodoService {
 
     private static final Function<Row, Todo> ROW_MAPPER = row -> new Todo(
             row.getLong("id"),
@@ -38,7 +35,6 @@ class TodoService {
     private final Db db;
 
 
-    @Autowired
     public TodoService(Db db) {
         this.db = db;
     }

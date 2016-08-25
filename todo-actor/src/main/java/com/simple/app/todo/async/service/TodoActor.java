@@ -1,84 +1,59 @@
 package com.simple.app.todo.async.service;
 
-import akka.actor.AbstractLoggingActor;
-import akka.japi.pf.ReceiveBuilder;
-import com.simple.app.todo.async.akka.ActionMessage;
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
 import com.simple.app.todo.async.domain.Todo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.async.DeferredResult;
-import rx.Observable;
 
-import java.util.List;
+public class TodoActor extends UntypedActor {
 
-@Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class TodoActor extends AbstractLoggingActor {
+    private final TodoService todoService;
 
-    private <T> Observable<T> handleError(Observable<T> observable, ActionMessage msg) {
-        return observable.doOnError(e -> {
-            e.printStackTrace();
-            msg.getDeferred().setErrorResult(e);
-        });
-    }
-
-    @Autowired
     public TodoActor(TodoService todoService) {
-        receive(ReceiveBuilder
-                .match(FindAll.class, msg ->
-                        handleError(todoService.findAll(), msg)
-                                .toList()
-                                .subscribe(todos -> {
-                                    //log().info("result collected");
-                                    msg.getDeferred().setResult(todos);
-                                }))
-                .match(FindOne.class, msg ->
-                        handleError(todoService.findOne(msg.getId()), msg)
-                                .subscribe(todo -> {
-                                    //log().info("result collected");
-                                    msg.getDeferred().setResult(todo);
-                                }))
-                .match(Save.class, msg ->
-                        handleError(todoService.save(msg.getTodo()), msg)
-                                .subscribe(todo -> {
-                                    //log().info("result collected");
-                                    msg.getDeferred().setResult(todo);
-                                }))
-                .match(Remove.class, msg ->
-                        handleError(todoService.remove(msg.getId()), msg)
-                                .subscribe(removed -> {
-                                    //log().info("result collected");
-                                    msg.getDeferred().setResult(removed);
-                                }))
-                .build());
+        this.todoService = todoService;
     }
 
     @Override
-    public void preStart() throws Exception {
-        log().info("starting");
+    public void onReceive(Object message) throws Throwable {
+        final ActorRef sender = sender();
+
+        if (message instanceof FindAll) {
+            todoService.findAll()
+                    .toList()
+                    .subscribe(todos -> sender.tell(todos, self()));
+        }
+
+        if (message instanceof FindOne) {
+            todoService.findOne(((FindOne) message).getId())
+                    .subscribe(todos -> sender.tell(todos, self()));
+        }
+
+        if (message instanceof Save) {
+            todoService.save(((Save) message).getTodo())
+                    .subscribe(todo -> sender.tell(todo, self()));
+        }
+        if (message instanceof Remove) {
+            todoService.remove(((Remove) message).getId())
+                    .subscribe(todo -> sender.tell(todo, self()));
+        }
     }
 
-    @Override
-    public void postStop() throws Exception {
-        log().info("shutting down");
+    public static Props props(TodoService todoService) {
+        return Props.create(TodoActor.class, todoService);
     }
 
-    public static class FindAll extends ActionMessage<List<Todo>> {
+    public static class FindAll {
 
-        public FindAll(DeferredResult<List<Todo>> deferred) {
-            super(deferred);
+        public FindAll() {
         }
 
     }
 
-    public static class FindOne extends ActionMessage<Todo> {
+    public static class FindOne {
 
         private final Long id;
 
-        public FindOne(DeferredResult<Todo> deferred, Long id) {
-            super(deferred);
+        public FindOne(Long id) {
             this.id = id;
         }
 
@@ -88,12 +63,11 @@ public class TodoActor extends AbstractLoggingActor {
 
     }
 
-    public static class Save extends ActionMessage<Todo> {
+    public static class Save {
 
         private final Todo todo;
 
-        public Save(DeferredResult<Todo> deferred, Todo todo) {
-            super(deferred);
+        public Save(Todo todo) {
             this.todo = todo;
         }
 
@@ -103,12 +77,11 @@ public class TodoActor extends AbstractLoggingActor {
 
     }
 
-    public static class Remove extends ActionMessage<Boolean> {
+    public static class Remove {
 
         private final Long id;
 
-        public Remove(DeferredResult<Boolean> deferred, Long id) {
-            super(deferred);
+        public Remove(Long id) {
             this.id = id;
         }
 
