@@ -101,12 +101,6 @@ public class TodoAsyncApp extends AllDirectives {
                     }
                 });
 
-        System.out.println("Type RETURN to exit");
-        System.in.read();
-
-        binding
-                .thenCompose(ServerBinding::unbind)
-                .thenAccept(unbound -> system.terminate());
     }
 
 

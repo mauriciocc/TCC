@@ -1,5 +1,6 @@
 package simulations
 
+import com.typesafe.config.ConfigFactory
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.http.request.builder.HttpRequestBuilder
@@ -8,13 +9,9 @@ import scala.concurrent.duration._
 
 object Crud {
   val crud = exec(newTodo)
-    //.pause(1)
     .exec(newTodo.check(jsonPath("$.id").ofType[Int].saveAs("newTodoId")))
-    //.pause(200 milliseconds, 1000 milliseconds)
     .exec(findOne)
-    //.pause(200 milliseconds, 1000 milliseconds)
     .exec(http("Delete").delete("/api/todos/${foundTodoId}"))
-    //.pause(200 milliseconds, 1000 milliseconds)
     .exec(findAll)
 
   def findOne: HttpRequestBuilder = {
@@ -47,7 +44,9 @@ object Crud {
 }
 
 class TodoSimulation extends Simulation {
-  val httpConf = http.baseURL("http://10.1.1.101:8080")
+
+  val conf = ConfigFactory.load()
+  val httpConf = http.baseURL(conf.getString("baseUrl"))
 
   setUp(
     scenario("TodoSimulation - Users/S")
