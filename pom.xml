@@ -12,6 +12,7 @@
     <modules>
         <module>todo</module>
         <module>todo-actor</module>
+        <module>raytracer-common</module>
         <module>simulation</module>
     </modules>
 
