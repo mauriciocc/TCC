@@ -13,6 +13,7 @@ public class Todo implements Serializable {
     private final String title;
     private final String description;
     private final LocalDateTime createdOn;
+    private final LocalDateTime finishedOn = null;
 
     @JsonCreator
     public Todo(@JsonProperty("id") Long id,
@@ -47,4 +48,7 @@ public class Todo implements Serializable {
         return owner;
     }
 
+    public LocalDateTime getFinishedOn() {
+        return finishedOn;
+    }
 }

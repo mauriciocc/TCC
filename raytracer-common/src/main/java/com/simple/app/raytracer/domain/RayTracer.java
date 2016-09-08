@@ -22,18 +22,17 @@ public class RayTracer {
             "****    *      *       *"
     };
 
-    public byte[] render(int w, int h) {
+    private byte[] render(int w, int h, int threads) {
         RenderConfig config = new RenderConfig();
         config.setLines(pattern);
 
-        int cores = Runtime.getRuntime().availableProcessors();
-        config.setThreads(cores);
+        config.setThreads(threads);
 
         config.setBrightness(10);
-        config.setCamDirection(new Vector3f(-2, -12, 0));
+        config.setCamDirection(new Vector3f(0, -12, 5));
         config.setEvenColour(new Vector3f(3, 1, 1));
         config.setOddColour(new Vector3f(3, 3, 3));
-        config.setRayOrigin(new Vector3f(16, 18, 8));
+        config.setRayOrigin(new Vector3f(32, 64, 5));
         config.setSkyColour(new Vector3f(.4f, .4f, 1f));
         config.setSphereReflectivity(0.5f);
         config.setRays(22);
@@ -47,8 +46,8 @@ public class RayTracer {
 
     }
 
-    public byte[] renderToPng(int w, int h) {
-        ByteBuffer wrap = ByteBuffer.wrap(render(w, h));
+    public byte[] renderToPng(int w, int h, int threads) {
+        ByteBuffer wrap = ByteBuffer.wrap(render(w, h, threads));
         BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB_PRE);
         PixelFormat<ByteBuffer> pixelFormat = PixelFormat.getByteRgbInstance();
         for (int y = 0; y < h; y++) {

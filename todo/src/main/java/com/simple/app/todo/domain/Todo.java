@@ -9,6 +9,7 @@ public class Todo {
     private String title;
     private String description;
     private LocalDateTime createdOn = LocalDateTime.now();
+    private LocalDateTime finishedOn;
 
     public Todo() {
     }
@@ -59,5 +60,13 @@ public class Todo {
 
     public void setOwner(String owner) {
         this.owner = owner;
+    }
+
+    public LocalDateTime getFinishedOn() {
+        return finishedOn;
+    }
+
+    public void setFinishedOn(LocalDateTime finishedOn) {
+        this.finishedOn = finishedOn;
     }
 }
