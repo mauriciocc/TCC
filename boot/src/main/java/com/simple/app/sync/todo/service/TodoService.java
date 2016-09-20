@@ -1,6 +1,6 @@
-package com.simple.app.sync.service;
+package com.simple.app.sync.todo.service;
 
-import com.simple.app.sync.domain.Todo;
+import com.simple.app.sync.todo.domain.Todo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;

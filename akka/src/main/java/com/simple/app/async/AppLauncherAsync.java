@@ -23,13 +23,15 @@ import com.github.pgasync.ConnectionPoolBuilder;
 import com.github.pgasync.Db;
 import com.simple.app.Launcher;
 import com.simple.app.async.domain.Todo;
+import com.simple.app.async.service.RayTracerCoordinator;
+import com.simple.app.async.service.RayTracerExecutor;
 import com.simple.app.async.service.TodoActor;
 import com.simple.app.async.service.TodoService;
-import com.simple.app.raytracer.domain.RayTracer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.concurrent.Future;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -94,7 +96,7 @@ public class AppLauncherAsync extends AllDirectives {
 
         Config finalConf = conf;
         final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = launcher.on(
-                () -> app.rayTracerRoute().flow(system, materializer),
+                () -> app.rayTracerRoute(finalConf, system).flow(system, materializer),
                 () -> null,
                 () -> app.todoRoute(finalConf, system).flow(system, materializer)
         );
@@ -110,13 +112,15 @@ public class AppLauncherAsync extends AllDirectives {
 
     }
 
-    public Route rayTracerRoute() {
+    public Route rayTracerRoute(Config conf, ActorSystem system) {
         Marshaller<byte[], RequestEntity> byteMarshaller = Marshaller.wrapEntity(b -> b, Marshaller.byteArrayToEntity(), MediaTypes.IMAGE_PNG);
-        RayTracer rayTracer = new RayTracer();
+        ActorRef rayTracer = system.actorOf(RayTracerCoordinator.props());
         return pathPrefix("api", () ->
                 path("render", () ->
-                        get(() ->
-                                completeOK(rayTracer.renderToPng(RayTracer.SIZE, RayTracer.SIZE, RayTracer.THREADS), byteMarshaller)
+                        get(() -> {
+                                    Future ask = ask(rayTracer, new RayTracerExecutor.Render(), TIMEOUT);
+                                    return completeOKWithFuture(ask, byteMarshaller);
+                                }
                         )
                 )
         );

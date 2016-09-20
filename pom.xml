@@ -17,8 +17,8 @@
     </properties>
 
     <modules>
-        <module>todo</module>
-        <module>todo-actor</module>
+        <module>akka</module>
+        <module>boot</module>
         <module>raytracer-common</module>
         <module>simulation</module>
     </modules>

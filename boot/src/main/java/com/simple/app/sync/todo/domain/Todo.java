@@ -1,4 +1,4 @@
-package com.simple.app.sync.domain;
+package com.simple.app.sync.todo.domain;
 
 import java.time.LocalDateTime;
 

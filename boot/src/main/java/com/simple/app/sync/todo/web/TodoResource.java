@@ -1,7 +1,7 @@
-package com.simple.app.sync.web;
+package com.simple.app.sync.todo.web;
 
-import com.simple.app.sync.domain.Todo;
-import com.simple.app.sync.service.TodoService;
+import com.simple.app.sync.todo.domain.Todo;
+import com.simple.app.sync.todo.service.TodoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

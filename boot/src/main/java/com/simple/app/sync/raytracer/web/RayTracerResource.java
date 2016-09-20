@@ -1,4 +1,4 @@
-package com.simple.app.sync.web;
+package com.simple.app.sync.raytracer.web;
 
 import com.simple.app.raytracer.domain.RayTracer;
 import org.springframework.http.MediaType;
