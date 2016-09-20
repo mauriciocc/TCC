@@ -10,6 +10,9 @@ import java.nio.ByteBuffer;
 
 public class RayTracer {
 
+    public static final int SIZE = 256;
+    public static final int THREADS = 1;
+
     private final String[] pattern = {
             "******* ****** *       *",
             "   *    *       *     * ",
