@@ -16,7 +16,6 @@
         <groupId>com.simple</groupId>
         <artifactId>app</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
 
