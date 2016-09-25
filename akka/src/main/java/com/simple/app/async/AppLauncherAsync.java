@@ -14,6 +14,7 @@ import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.StringUnmarshallers;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import akka.stream.ActorMaterializer;
+import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.util.Timeout;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,25 +23,29 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.pgasync.ConnectionPoolBuilder;
 import com.github.pgasync.Db;
 import com.simple.app.Launcher;
-import com.simple.app.async.domain.Todo;
-import com.simple.app.async.service.RayTracerCoordinator;
-import com.simple.app.async.service.RayTracerExecutor;
-import com.simple.app.async.service.TodoActor;
-import com.simple.app.async.service.TodoService;
+import com.simple.app.async.raytracer.RayTracerCoordinator;
+import com.simple.app.async.raytracer.RayTracerExecutor;
+import com.simple.app.async.report.HttpActor;
+import com.simple.app.async.todo.domain.Todo;
+import com.simple.app.async.todo.service.TodoActor;
+import com.simple.app.async.todo.service.TodoService;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.concurrent.Future;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
-import static akka.pattern.Patterns.ask;
+import static akka.pattern.PatternsCS.ask;
+
 
 public class AppLauncherAsync extends AllDirectives {
 
@@ -97,7 +102,7 @@ public class AppLauncherAsync extends AllDirectives {
         Config finalConf = conf;
         final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = launcher.on(
                 () -> app.rayTracerRoute(finalConf, system).flow(system, materializer),
-                () -> null,
+                () -> app.reportRoute(finalConf, system, materializer).flow(system, materializer),
                 () -> app.todoRoute(finalConf, system).flow(system, materializer)
         );
         ConnectHttp localhost = ConnectHttp.toHost(conf.getString("app.host"), conf.getInt("app.port"));
@@ -112,13 +117,40 @@ public class AppLauncherAsync extends AllDirectives {
 
     }
 
+    public Route reportRoute(Config conf, ActorSystem system, Materializer materializer) {
+        final Base64.Encoder encoder = Base64.getEncoder();
+        BiFunction<String, byte[], String> fn = (json, image) ->
+                "<pre>" + json + "</pre>" +
+                        "<img src='data:image/png;" + encoder.encodeToString(image) + "'/>";
+        Marshaller<String, RequestEntity> htmlMarsh = Marshaller.stringToEntity();
+        ActorRef httpActor = system.actorOf(
+                HttpActor.props(
+                        materializer,
+                        conf.getString("report.todo.url"),
+                        conf.getString("report.raytracer.url")
+                )
+        );
+        return pathPrefix("api", () ->
+                path("report", () ->
+                        get(() -> {
+                                    CompletableFuture todos = ask(httpActor, HttpActor.Message.FIND_TODOS, TIMEOUT).toCompletableFuture();
+                                    CompletableFuture image = ask(httpActor, HttpActor.Message.RENDER_IMAGE, TIMEOUT).toCompletableFuture();
+                                    CompletableFuture<String> all = CompletableFuture.allOf(todos, image)
+                                            .thenApply(aVoid -> fn.apply((String) todos.join(), (byte[]) image.join()));
+                                    return completeOKWithFuture(all, htmlMarsh);
+                                }
+                        )
+                )
+        );
+    }
+
     public Route rayTracerRoute(Config conf, ActorSystem system) {
         Marshaller<byte[], RequestEntity> byteMarshaller = Marshaller.wrapEntity(b -> b, Marshaller.byteArrayToEntity(), MediaTypes.IMAGE_PNG);
         ActorRef rayTracer = system.actorOf(RayTracerCoordinator.props());
         return pathPrefix("api", () ->
                 path("render", () ->
                         get(() -> {
-                                    Future ask = ask(rayTracer, new RayTracerExecutor.Render(), TIMEOUT);
+                                    CompletionStage ask = ask(rayTracer, new RayTracerExecutor.Render(), TIMEOUT);
                                     return completeOKWithFuture(ask, byteMarshaller);
                                 }
                         )

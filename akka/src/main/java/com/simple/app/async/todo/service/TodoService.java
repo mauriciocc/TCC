@@ -1,8 +1,8 @@
-package com.simple.app.async.service;
+package com.simple.app.async.todo.service;
 
 import com.github.pgasync.Db;
 import com.github.pgasync.Row;
-import com.simple.app.async.domain.Todo;
+import com.simple.app.async.todo.domain.Todo;
 import rx.Observable;
 
 import java.sql.Timestamp;

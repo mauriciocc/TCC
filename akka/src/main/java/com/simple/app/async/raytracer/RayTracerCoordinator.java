@@ -1,4 +1,4 @@
-package com.simple.app.async.service;
+package com.simple.app.async.raytracer;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;

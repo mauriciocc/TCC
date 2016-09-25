@@ -51,7 +51,7 @@ class TodoSimulation extends Simulation {
   setUp(
     scenario("TodoSimulation - Users/S")
       .exec(Crud.crud)
-      .inject(atOnceUsers(1000))
+      .inject(atOnceUsers(conf.getInt("todo.load")))
       //.inject(rampUsers(1000) over (10 seconds))
   ).protocols(httpConf)
 

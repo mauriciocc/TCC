@@ -1,9 +1,9 @@
-package com.simple.app.async.service;
+package com.simple.app.async.todo.service;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import com.simple.app.async.domain.Todo;
+import com.simple.app.async.todo.domain.Todo;
 
 public class TodoActor extends UntypedActor {
 

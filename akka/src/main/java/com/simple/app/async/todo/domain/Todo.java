@@ -1,4 +1,4 @@
-package com.simple.app.async.domain;
+package com.simple.app.async.todo.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
